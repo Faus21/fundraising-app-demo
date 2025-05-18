@@ -8,3 +8,7 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect
+
+external:
+  exchange:
+    url: https://v6.exchangerate-api.com/v6/

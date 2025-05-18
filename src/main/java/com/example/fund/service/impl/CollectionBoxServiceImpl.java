@@ -6,17 +6,20 @@ import com.example.fund.model.entity.TransferCollectionBox;
 import com.example.fund.model.exception.ResourseNotFoundException;
 import com.example.fund.model.request.CollectionBoxAssignRequest;
 import com.example.fund.model.request.TransferRequest;
+import com.example.fund.model.request.TransferToEventRequest;
 import com.example.fund.model.response.CollectionBoxResponse;
 import com.example.fund.repository.CollectionBoxRepository;
 import com.example.fund.repository.FundraisingEventRepository;
 import com.example.fund.repository.TransferRepository;
 import com.example.fund.service.CollectionBoxService;
+import com.example.fund.service.CurrencyExchangeApiService;
 import com.example.fund.util.CurrencyCheckUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,6 +32,7 @@ public class CollectionBoxServiceImpl implements CollectionBoxService {
     private final CollectionBoxRepository collectionBoxRepository;
     private final FundraisingEventRepository fundraisingEventRepository;
     private final TransferRepository transferRepository;
+    private final CurrencyExchangeApiService currencyExchangeApiService;
     private final ModelMapper modelMapper;
 
     @Override
@@ -81,6 +85,8 @@ public class CollectionBoxServiceImpl implements CollectionBoxService {
         CollectionBox box = collectionBoxRepository.findById(request.getCollectionBox())
                 .orElseThrow(() -> new ResourseNotFoundException("Collection box not found"));
 
+        request.setCurrency(request.getCurrency().toUpperCase());
+
         if (!CurrencyCheckUtil.checkCurrency(request.getCurrency()))
             throw new IllegalArgumentException("Incorrect currency");
 
@@ -88,6 +94,37 @@ public class CollectionBoxServiceImpl implements CollectionBoxService {
         transferCollectionBox.setCollectionBox(box);
 
         transferRepository.save(transferCollectionBox);
+
+        return true;
+    }
+
+    @Transactional
+    @Override
+    public boolean transferAllMoneyToEvent(TransferToEventRequest request) {
+        CollectionBox collectionBox = collectionBoxRepository.findById(request.getCollectionBox())
+                .orElseThrow(() -> new ResourseNotFoundException("Collection box not found"));
+
+        if (Objects.isNull(collectionBox.getEvent()))
+            throw new IllegalArgumentException("Collection box is not assigned to event");
+
+        FundraisingEvent fe = collectionBox.getEvent();
+
+        BigDecimal sum = new BigDecimal(0);
+        for (TransferCollectionBox tr : collectionBox.getTransfers()){
+
+            if (fe.getAccountCurrency().equals(tr.getCurrency())){
+                sum = sum.add(tr.getAmount());
+                continue;
+            }
+
+            BigDecimal amount = currencyExchangeApiService
+                    .getExchangeRate(tr.getCurrency(), fe.getAccountCurrency(), tr.getAmount());
+
+            sum = sum.add(amount);
+        }
+
+        collectionBox.getTransfers().clear();
+        fe.setAmount(fe.getAmount().add(sum));
 
         return true;
     }
