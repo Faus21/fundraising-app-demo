@@ -12,7 +12,7 @@ CREATE TABLE collection_box (
 );
 
 CREATE TABLE transfer_collection_box(
-    id UUID PRIMARY KEY,
+    transfer_id UUID PRIMARY KEY,
     collection_box_id UUID NOT NULL,
     currency VARCHAR(3) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
