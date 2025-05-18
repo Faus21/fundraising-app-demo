@@ -1,5 +1,7 @@
 package com.example.fund.service;
 
+import com.example.fund.model.request.CollectionBoxAssignRequest;
+import com.example.fund.model.request.TransferRequest;
 import com.example.fund.model.response.CollectionBoxResponse;
 
 import java.util.List;
@@ -12,4 +14,8 @@ public interface CollectionBoxService {
     CollectionBoxResponse createCollectionBox();
 
     void deleteCollectionBox(UUID id);
+
+    boolean assignToFundraisingEvent(UUID id, CollectionBoxAssignRequest request);
+
+    boolean transferMoney(TransferRequest request);
 }
