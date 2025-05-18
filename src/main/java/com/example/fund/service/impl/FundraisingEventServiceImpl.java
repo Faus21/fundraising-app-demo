@@ -30,6 +30,8 @@ public class FundraisingEventServiceImpl implements FundraisingEventService {
     @Override
     public FundraisingEventResponse createFundraisingEvent(FundraisingEventCreateRequest request) {
 
+        request.setAccountCurrency(request.getAccountCurrency().toUpperCase());
+
         if (!CurrencyCheckUtil.checkCurrency(request.getAccountCurrency())){
             throw new IllegalArgumentException("Currencies don't match");
         }

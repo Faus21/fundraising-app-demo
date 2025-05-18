@@ -2,6 +2,7 @@ package com.example.fund.controller;
 
 import com.example.fund.model.request.CollectionBoxAssignRequest;
 import com.example.fund.model.request.TransferRequest;
+import com.example.fund.model.request.TransferToEventRequest;
 import com.example.fund.service.CollectionBoxService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +34,14 @@ public class CollectionBoxController {
         return ResponseEntity.ok(collectionBoxService.createCollectionBox());
     }
 
-    @PostMapping("/transfer")
+    @PostMapping("/transfer-box")
     public ResponseEntity<?> transferToCollectionBox(@RequestBody TransferRequest request) {
         return ResponseEntity.ok(collectionBoxService.transferMoney(request));
+    }
+
+    @PostMapping("/transfer-event")
+    public ResponseEntity<?> transferToEvent(@RequestBody TransferToEventRequest request) {
+        return ResponseEntity.ok(collectionBoxService.transferAllMoneyToEvent(request));
     }
 
     @PutMapping("/{id}")
